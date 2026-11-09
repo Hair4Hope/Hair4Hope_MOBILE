@@ -27,7 +27,7 @@ class PresentationPage2 extends StatelessWidget {
           ),
           const Spacer(flex: 1),
           Icon(
-            Icons.paid,
+            Icons.photo_library_outlined,
             size: 135,
             color: const Color.fromARGB(
               255,
@@ -37,7 +37,7 @@ class PresentationPage2 extends StatelessWidget {
             ),
           ),
           Text(
-            'Fazer uma doação sem medo e com segurança',
+            'Acompanhar eventos e posts do Instituto e ficar por dentro das novidades!',
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: subtitleFontSize * 1.35,

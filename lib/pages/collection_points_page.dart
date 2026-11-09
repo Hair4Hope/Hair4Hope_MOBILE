@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'package:iam_app/components/myappbar.dart';
 import 'package:iam_app/components/my_bottom_nav_bar.dart';
@@ -19,15 +20,11 @@ class CollectionPointsPage
 
 class _CollectionPointsPageState
     extends State<CollectionPointsPage> {
-
-  final List<GlobalKey> listinha = [
-    GlobalKey(),
-  ];
+  final List<GlobalKey> listinha = [GlobalKey()];
 
   @override
-  void initState(){
-ShowcaseView.register(
-    );
+  void initState() {
+    ShowcaseView.register();
     super.initState();
   }
 
@@ -52,21 +49,48 @@ ShowcaseView.register(
           children: [
             Showcase(
               key: listinha[0],
-              
-              title: 'Barra de Busca',
+
+              title: 'Botão de busca',
               description:
-                  'Insira seu CEP e número de estabelecimento para encontrar pontos de coleta próximos.',
-                  descTextStyle: const TextStyle(
-                    fontWeight: FontWeight.normal,
-                    fontSize: 14,
-                  ),
-                 titleAlignment: AlignmentGeometry.topLeft,
-                 toolTipSlideEndDistance: 0,
-              child: SearchBar(
-                cepController: _cepController,
-                numeroController: _numeroController,
-                onSearch: _fetchPontosDeColeta,
+                  'Clique no botão acima para buscar os pontos de coleta próximos a você usando sua localização atual.',
+              descTextStyle: const TextStyle(
+                fontWeight: FontWeight.normal,
+                fontSize: 14,
               ),
+              titleAlignment:
+                  AlignmentGeometry.topLeft,
+              toolTipSlideEndDistance: 0,
+              child: ElevatedButton(
+                onPressed: _getlocation,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(
+                    0xFFEC2C8F,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius:
+                        BorderRadius.circular(
+                          16.0,
+                        ),
+                  ),
+                  padding:
+                      const EdgeInsets.symmetric(
+                        vertical: 14.0,
+                        horizontal: 24.0,
+                      ),
+                ),
+                child: const Text(
+                  'Buscar Pontos de Coleta',
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+              // SearchBar(
+              //   cepController: _cepController,
+              //   numeroController: _numeroController,
+              //   onSearch: _fetchPontosDeColeta,
+              // ),
             ),
             const SizedBox(height: 20),
             Expanded(child: _buildResults()),
@@ -102,8 +126,8 @@ ShowcaseView.register(
         'hair4hope-backend.onrender.com',
         '/ponto/pesquisa',
         {
-          'cep': _cepController.text,
-          'numero': _numeroController.text,
+          'lat': _cepController.text,
+          'lon': _numeroController.text,
         },
       );
 
@@ -136,6 +160,41 @@ ShowcaseView.register(
     }
   }
 
+Future<void> _getlocation() async {
+  try {
+    bool ativado =
+        await Geolocator.isLocationServiceEnabled();
+
+    LocationPermission permission =
+        await Geolocator.checkPermission();
+
+    if (ativado) {
+      await Geolocator.requestPermission();
+    }
+    if (permission == LocationPermission.denied) {
+      await Geolocator.requestPermission();
+      //implementar pop up pedindo par ir até as configurações para permitir o uso da localização
+    }
+    Position position =
+        await Geolocator.getCurrentPosition();
+    print(position);
+
+    // if (permission ==
+    //     LocationPermission.deniedForever) {
+    //   print(
+    //     "Vá até as configurações e permita o uso)",
+    //   );
+    // }
+
+    _cepController.text =
+        position.latitude.toString();
+    _numeroController.text =
+        position.longitude.toString();
+    _fetchPontosDeColeta();
+  } catch (e) {
+    print(e.toString());
+  }
+}
   Widget _buildResults() {
     if (_isLoading) {
       return const Center(
@@ -157,7 +216,7 @@ ShowcaseView.register(
     if (_pontosDeColeta.isEmpty) {
       return const Center(
         child: Text(
-          "Insira um CEP e número para encontrar pontos de doação próximos.",
+          "Clique no botão acima para buscar os pontos de coleta próximos a você usando sua localização atual.",
           textAlign: TextAlign.center,
         ),
       );
@@ -219,14 +278,14 @@ class SearchBar extends StatelessWidget {
             child: TextField(
               controller: cepController,
               onSubmitted: (_) => onSearch(),
-              keyboardType:
-                  TextInputType.numberWithOptions(
-                    decimal: false,
-                  ),
-              inputFormatters: [
-                FilteringTextInputFormatter
-                    .digitsOnly,
-              ],
+              // keyboardType:
+              //     TextInputType.numberWithOptions(
+              //       decimal: true,
+              //     ),
+              // inputFormatters: [
+              //   FilteringTextInputFormatter
+              //       .digitsOnly,
+              // ],
               decoration: InputDecoration(
                 hintText: 'Insira seu CEP',
                 hintStyle: TextStyle(
@@ -248,14 +307,14 @@ class SearchBar extends StatelessWidget {
             child: TextField(
               controller: numeroController,
               onSubmitted: (_) => onSearch(),
-              keyboardType:
-                  TextInputType.numberWithOptions(
-                    decimal: false,
-                  ),
-              inputFormatters: [
-                FilteringTextInputFormatter
-                    .digitsOnly,
-              ], // Teclado numérico
+              // keyboardType:
+              //     TextInputType.numberWithOptions(
+              //       decimal: false,
+              //     ),
+              // inputFormatters: [
+              //   FilteringTextInputFormatter
+              //       .digitsOnly,
+              // ], // Teclado numérico
               decoration: InputDecoration(
                 hintText: 'N°',
                 hintStyle: TextStyle(
