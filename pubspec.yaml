@@ -42,6 +42,7 @@ dependencies:
   webview_flutter: ^4.13.0
   showcaseview: ^5.0.1
   geolocator: ^13.0.2
+  shared_preferences: ^2.5.5
 
 dev_dependencies:
   flutter_test:

@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:iam_app/components/UnderDev_pop_up.dart';
+import 'package:iam_app/components/underdev_pop_up.dart';
+import 'package:iam_app/components/login_pop_up.dart';
+import 'package:iam_app/components/user_profile_pop_up.dart';
+import 'package:iam_app/services/auth_service.dart';
 import 'package:showcaseview/showcaseview.dart';
+
 
 class MyAppBar extends StatelessWidget
     implements PreferredSizeWidget {
@@ -64,13 +68,42 @@ class MyAppBar extends StatelessWidget
             Icons.person_outline,
             color: Colors.black87,
           ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return const UnderDevPopUp();
-              },
-            );
+          onPressed: () async {
+            final logado = await AuthService.isLoggedIn();
+
+            if (!context.mounted) return;
+
+            if (logado) {
+              final nome = await AuthService.getUserName();
+              final email = await AuthService.getUserEmail();
+
+              if (!context.mounted) return;
+
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return UserProfilePopUp(
+                    userName: nome,
+                    userEmail: email,
+                    onLogout: () {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Você saiu da conta.'),
+                          backgroundColor: Colors.green,
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            } else {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return const LoginPopUp();
+                },
+              );
+            }
           },
         ),
         IconButton(
